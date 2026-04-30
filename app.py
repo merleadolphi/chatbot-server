@@ -274,7 +274,9 @@ def chat():
     data = request.get_json() or {}
     message = data.get("message", "")
     group = data.get("group")
+    task = data.get("task", "")
     history = data.get("history", [])
+
 
     if group == 1:
         system_prompt = CHS_PROMPT
@@ -289,10 +291,33 @@ def chat():
 
     print("GRUPPE:", group)
 
+    task_prompt = f"""
+        AKTUELLE AUFGABE:
+        Die Person bearbeitet gerade die Aufgabe: {task}.
+        
+        Antworte nur zu dieser Aufgabe.
+        Nutze nur Referenzwerte, die zu dieser Aufgabe passen.
+        Vermische diese Aufgabe nicht mit anderen Aufgaben.
+        
+        Wenn die Aufgabe "kaffee" ist:
+        - Es geht nur um Kaffee in Berlin.
+        - Es geht nicht um China.
+        - Es geht nicht um Windeln.
+        
+        Wenn die Aufgabe "windeln" ist:
+        - Es geht nur um Windeln in China.
+        
+        Wenn die Aufgabe "stau" ist:
+        - Es geht nur um Autos, Stau und Personen.
+        
+        Wenn die Aufgabe "schulen" ist:
+        - Es geht nur um Schulen in Deutschland.
+        """
+
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=[
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": system_prompt+ task_prompt},
             *history
         ]
     )
